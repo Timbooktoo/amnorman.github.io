@@ -56,6 +56,22 @@ If needed, replace `"command": "uvx"` with the full path to `uvx.exe`, for examp
 "command": "C:\\Users\\your-user\\.local\\bin\\uvx.exe"
 ```
 
+If Claude shows `Server disconnected`, make sure the arguments are three separate strings:
+
+```json
+"args": [
+  "--from",
+  "git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp",
+  "plaud-mcp"
+]
+```
+
+Do not enter them as one combined string like:
+
+```json
+"args": ["--from git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp plaud-mcp"]
+```
+
 Do not use `uvx plaud-mcp` unless the package has been published to PyPI. This repo currently runs it from GitHub with `--from git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp`.
 
 ## Requirements

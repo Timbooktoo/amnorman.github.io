@@ -107,5 +107,10 @@ Als het goed is zie je een overzicht van je opnames. Je kunt daarna ook vragen:
 - Windows: voer `Get-Command uvx` uit en gebruik eventueel het volledige pad in `"command"`, bijvoorbeeld `"C:\\Users\\jouwnaam\\.local\\bin\\uvx.exe"`
 - Gebruik niet alleen `uvx plaud-mcp`; deze package wordt vanuit GitHub gestart met de `--from git+...#subdirectory=plaud-mcp` argumenten hierboven
 
+**Claude toont `Server disconnected`**
+- Controleer dat `"args"` uit drie losse regels/strings bestaat: `"--from"`, `"git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp"` en `"plaud-mcp"`
+- Gebruik dus niet één gecombineerde regel zoals `"--from git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp plaud-mcp"`
+- Sla het bestand op en herstart Claude Desktop volledig
+
 **Het bestand `claude_desktop_config.json` bestaat niet**
 - Maak het aan als nieuw tekstbestand met exact die naam op de aangegeven locatie
