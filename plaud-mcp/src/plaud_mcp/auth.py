@@ -25,6 +25,8 @@ def _save_token(data: dict) -> None:
 
 
 def _is_token_valid(token_data: dict) -> bool:
+    if not token_data.get("access_token"):
+        return False
     expires_at = token_data.get("expires_at", 0)
     refresh_threshold = time.time() + REFRESH_WINDOW_DAYS * 86400
     return expires_at > refresh_threshold
@@ -50,9 +52,10 @@ def _login() -> str:
     if body.get("status", -1) != 0 and "access_token" not in body:
         raise RuntimeError(f"Login mislukt: {body}")
 
-    access_token = body["access_token"]
+    access_token = body.get("access_token")
+    if not access_token:
+        raise RuntimeError(f"Login gaf een leeg token terug: {body}")
 
-    # Token geldig voor ~300 dagen; sla op met expires_at
     expires_at = time.time() + 300 * 86400
     _save_token({"access_token": access_token, "expires_at": expires_at})
     return access_token
