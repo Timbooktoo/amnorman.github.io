@@ -7,7 +7,7 @@ Deze handleiding legt uit hoe je jouw Plaud Note-opnames beschikbaar maakt in Cl
 ## Wat heb je nodig?
 
 - Claude Desktop (al geïnstalleerd)
-- Je Plaud-accountgegevens (email + wachtwoord)
+- Je Plaud bearer token (zie hieronder)
 - `uv` — een klein hulpprogramma om de koppeling te draaien
 
 ---
@@ -28,26 +28,30 @@ Sluit Terminal / PowerShell daarna en open het opnieuw.
 
 ---
 
-## Stap 2 — Pas de Claude Desktop config aan
+## Stap 2 — Zoek je Plaud bearer token
+
+1. Ga naar [plaud.ai](https://www.plaud.ai) en log in
+2. Open de browser DevTools (F12) → tabblad **Network**
+3. Laad een pagina opnieuw en zoek een API-aanroep naar `api.plaud.ai`
+4. Kopieer de waarde na `Bearer ` uit de `Authorization` header
+
+---
+
+## Stap 3 — Pas de Claude Desktop config aan
 
 ### Zoek het configuratiebestand
 
 **macOS**
-1. Open Finder
-2. Druk op `Cmd + Shift + G`
-3. Plak: `~/Library/Application Support/Claude/`
-4. Open `claude_desktop_config.json` in een teksteditor
+1. Open Finder → `Cmd + Shift + G` → plak: `~/Library/Application Support/Claude/`
+2. Open `claude_desktop_config.json`
 
 **Windows**
-1. Open Verkenner
-2. Plak in de adresbalk: `%APPDATA%\Claude`
-3. Open `claude_desktop_config.json` in Kladblok of een andere teksteditor
+1. Open Verkenner → plak in adresbalk: `%APPDATA%\Claude`
+2. Open `claude_desktop_config.json`
 
 > Het bestand bestaat nog niet? Maak het aan met precies die naam op die locatie.
 
 ### Voeg de Plaud-koppeling toe
-
-Vervang de inhoud van het bestand (of voeg toe als er al iets in staat) met:
 
 ```json
 {
@@ -60,23 +64,24 @@ Vervang de inhoud van het bestand (of voeg toe als er al iets in staat) met:
         "plaud-mcp"
       ],
       "env": {
-        "PLAUD_EMAIL": "jouw@email.com",
-        "PLAUD_PASSWORD": "jouwwachtwoord"
+        "PLAUD_TOKEN": "jouw-bearer-token"
       }
     }
   }
 }
 ```
 
-Vervang `jouw@email.com` en `jouwwachtwoord` door je eigen Plaud-gegevens.
+Vervang `jouw-bearer-token` door het token uit stap 2.
+
+> **Windows:** als `uvx` niet werkt, zie de [README](README.md#installing-without-uvx) voor de alternatieve installatiemethode met pip.
 
 > **Heb je al andere servers in je config?** Voeg dan alleen het `"plaud": { ... }` blok toe binnen de bestaande `"mcpServers"` sectie.
 
 ---
 
-## Stap 3 — Herstart Claude Desktop
+## Stap 4 — Herstart Claude Desktop
 
-Sluit Claude Desktop volledig af en open het opnieuw. Bij de eerste vraag over je opnames downloadt Claude de koppeling automatisch — dit duurt een halve minuut.
+Sluit Claude Desktop volledig af (systeemvak → Afsluiten) en open het opnieuw.
 
 ---
 
@@ -97,20 +102,15 @@ Als het goed is zie je een overzicht van je opnames. Je kunt daarna ook vragen:
 ## Problemen?
 
 **Claude toont geen Plaud-opnames**
-- Controleer of email en wachtwoord correct zijn in de config
+- Controleer of het bearer token correct is gekopieerd (geen spaties voor of na)
 - Controleer of het JSON-bestand geldig is (geen ontbrekende komma's of haakjes)
 - Herstart Claude Desktop opnieuw
 
 **`uvx` wordt niet herkend**
 - Sluit Terminal/PowerShell en open het opnieuw na de installatie
-- macOS: voer `source ~/.bashrc` of `source ~/.zshrc` uit
-- Windows: voer `Get-Command uvx` uit en gebruik eventueel het volledige pad in `"command"`, bijvoorbeeld `"C:\\Users\\jouwnaam\\.local\\bin\\uvx.exe"`
-- Gebruik niet alleen `uvx plaud-mcp`; deze package wordt vanuit GitHub gestart met de `--from git+...#subdirectory=plaud-mcp` argumenten hierboven
+- Windows: gebruik het volledige pad naar `uvx.exe` (voer `where.exe uvx` uit in PowerShell)
+- Zie [README](README.md#installing-without-uvx) voor de pip-installatiemethode als alternatief
 
-**Claude toont `Server disconnected`**
-- Controleer dat `"args"` uit drie losse regels/strings bestaat: `"--from"`, `"git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp"` en `"plaud-mcp"`
-- Gebruik dus niet één gecombineerde regel zoals `"--from git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp plaud-mcp"`
+**Server disconnected**
+- Controleer dat `"args"` uit drie losse strings bestaat (zie config hierboven)
 - Sla het bestand op en herstart Claude Desktop volledig
-
-**Het bestand `claude_desktop_config.json` bestaat niet**
-- Maak het aan als nieuw tekstbestand met exact die naam op de aangegeven locatie

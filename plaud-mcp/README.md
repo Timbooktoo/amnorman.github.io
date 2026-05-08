@@ -31,65 +31,49 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
         "plaud-mcp"
       ],
       "env": {
-        "PLAUD_EMAIL": "your@email.com",
-        "PLAUD_PASSWORD": "yourpassword"
+        "PLAUD_TOKEN": "your-bearer-token"
       }
     }
   }
 }
 ```
 
+On Windows, `uvx` may not be on Claude Desktop's PATH. Replace `"command": "uvx"` with the full path (run `where.exe uvx` in PowerShell to find it). If `uvx` fails entirely, see [Installing without uvx](#installing-without-uvx).
+
 ### 2. Restart Claude Desktop
 
-On first use, the server logs in and caches the token at `~/.plaud/config.json`. The token is valid for ~300 days and refreshes automatically.
+Fully quit (system tray → Quit) and reopen.
 
-## Troubleshooting Claude Desktop
+## Authentication
 
-If Claude cannot start the server with `uvx`, check that `uvx` is available to Claude:
+Credentials are read from environment variables. Two options — use whichever suits you:
 
-- macOS / Linux: run `which uvx`
-- Windows: run `Get-Command uvx`
+| Variable | Description |
+|---|---|
+| `PLAUD_TOKEN` | Your Plaud bearer token (recommended) |
+| `PLAUD_EMAIL` + `PLAUD_PASSWORD` | Your Plaud account credentials |
 
-If needed, replace `"command": "uvx"` with the full path to `uvx.exe`, for example:
+`PLAUD_TOKEN` takes priority if both are set. When using email/password, the server logs in on first use and caches the token at `~/.plaud/config.json` (valid ~300 days, auto-refreshes).
 
-```json
-"command": "C:\\Users\\your-user\\.local\\bin\\uvx.exe"
+## Installing without uvx
+
+If `uvx` fails (common on Windows due to git resolution issues), install once with pip instead:
+
+```
+pip install "git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp"
 ```
 
-If Claude shows `Server disconnected`, make sure the arguments are three separate strings:
+Then find the installed script path:
+- **Windows:** `where.exe plaud-mcp`
+- **macOS/Linux:** `which plaud-mcp`
 
-```json
-"args": [
-  "--from",
-  "git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp",
-  "plaud-mcp"
-]
-```
-
-Do not enter them as one combined string like:
-
-```json
-"args": ["--from git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp plaud-mcp"]
-```
-
-Do not use `uvx plaud-mcp` unless the package has been published to PyPI. This repo currently runs it from GitHub with `--from git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp`.
+Use that full path as `"command"` in your config with `"args": []`.
 
 ## Requirements
 
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 - A Plaud Note account
-
-## Authentication
-
-Credentials are read from environment variables:
-
-| Variable | Description |
-|---|---|
-| `PLAUD_EMAIL` | Your Plaud account email |
-| `PLAUD_PASSWORD` | Your Plaud account password |
-
-> **Note:** This package uses the reverse-engineered Plaud web API. It is not affiliated with Plaud Inc.
 
 ## License
 
