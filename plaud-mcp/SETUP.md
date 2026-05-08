@@ -56,7 +56,7 @@ Vervang de inhoud van het bestand (of voeg toe als er al iets in staat) met:
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/timbooktoo/amnorman.github.io#subdirectory=plaud-mcp",
+        "git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp",
         "plaud-mcp"
       ],
       "env": {
@@ -104,6 +104,8 @@ Als het goed is zie je een overzicht van je opnames. Je kunt daarna ook vragen:
 **`uvx` wordt niet herkend**
 - Sluit Terminal/PowerShell en open het opnieuw na de installatie
 - macOS: voer `source ~/.bashrc` of `source ~/.zshrc` uit
+- Windows: voer `Get-Command uvx` uit en gebruik eventueel het volledige pad in `"command"`, bijvoorbeeld `"C:\\Users\\jouwnaam\\.local\\bin\\uvx.exe"`
+- Gebruik niet alleen `uvx plaud-mcp`; deze package wordt vanuit GitHub gestart met de `--from git+...#subdirectory=plaud-mcp` argumenten hierboven
 
 **Het bestand `claude_desktop_config.json` bestaat niet**
 - Maak het aan als nieuw tekstbestand met exact die naam op de aangegeven locatie

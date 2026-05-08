@@ -25,7 +25,11 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
   "mcpServers": {
     "plaud": {
       "command": "uvx",
-      "args": ["plaud-mcp"],
+      "args": [
+        "--from",
+        "git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp",
+        "plaud-mcp"
+      ],
       "env": {
         "PLAUD_EMAIL": "your@email.com",
         "PLAUD_PASSWORD": "yourpassword"
@@ -38,6 +42,21 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 ### 2. Restart Claude Desktop
 
 On first use, the server logs in and caches the token at `~/.plaud/config.json`. The token is valid for ~300 days and refreshes automatically.
+
+## Troubleshooting Claude Desktop
+
+If Claude cannot start the server with `uvx`, check that `uvx` is available to Claude:
+
+- macOS / Linux: run `which uvx`
+- Windows: run `Get-Command uvx`
+
+If needed, replace `"command": "uvx"` with the full path to `uvx.exe`, for example:
+
+```json
+"command": "C:\\Users\\your-user\\.local\\bin\\uvx.exe"
+```
+
+Do not use `uvx plaud-mcp` unless the package has been published to PyPI. This repo currently runs it from GitHub with `--from git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp`.
 
 ## Requirements
 

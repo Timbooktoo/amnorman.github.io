@@ -24,8 +24,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/amnorman/amnorman.github.io/tree/main/plaud-mcp"
-Issues = "https://github.com/amnorman/amnorman.github.io/issues"
+Homepage = "https://github.com/Timbooktoo/amnorman.github.io/tree/main/plaud-mcp"
+Issues = "https://github.com/Timbooktoo/amnorman.github.io/issues"
 
 [project.scripts]
 plaud-mcp = "plaud_mcp.server:main"
