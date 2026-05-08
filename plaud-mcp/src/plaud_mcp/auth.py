@@ -62,6 +62,9 @@ def _login() -> str:
 
 
 def get_token() -> str:
+    token = os.environ.get("PLAUD_TOKEN")
+    if token:
+        return token
     cached = _load_cached_token()
     if cached and _is_token_valid(cached):
         return cached["access_token"]
