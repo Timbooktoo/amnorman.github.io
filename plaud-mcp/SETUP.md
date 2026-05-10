@@ -86,9 +86,44 @@ Vervang beide waarden door wat je in stap 2 hebt gekopieerd.
 > - `PLAUD_TIMEZONE` — standaard `Europe/Brussels`
 > - `PLAUD_EMAIL` + `PLAUD_PASSWORD` — alleen invullen als je wil dat de koppeling automatisch een nieuwe token ophaalt zodra de huidige verloopt
 
-> **Windows:** als `uvx` niet werkt, zie de [README](README.md#installing-without-uvx) voor de alternatieve installatiemethode met pip.
-
 > **Heb je al andere servers in je config?** Voeg dan alleen het `"plaud": { ... }` blok toe binnen de bestaande `"mcpServers"` sectie.
+
+### Werkt `uvx` niet vanuit Claude Desktop?
+
+Soms faalt `uvx` op Windows met *"Failed to resolve `--with` requirement / Git operation failed"* terwijl exact dezelfde regel in PowerShell wél werkt. Oplossing: installeer `plaud-mcp` één keer permanent en laat Claude Desktop direct die executable starten — geen git-fetch meer bij elke restart.
+
+**1. Eénmalig installeren** (PowerShell):
+```powershell
+uv tool install --from "git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp" plaud-mcp
+```
+
+Bij latere updates: vervang `install` door `install --reinstall`.
+
+**2. Pad opzoeken**:
+```powershell
+where.exe plaud-mcp
+```
+Resultaat zoiets als `C:\Users\<jouw-naam>\.local\bin\plaud-mcp.exe`. Kopieer dat pad.
+
+**3. Config aanpassen** — `command` naar het exe-pad, `args` leeg:
+```json
+{
+  "mcpServers": {
+    "plaud": {
+      "command": "C:\\Users\\<jouw-naam>\\.local\\bin\\plaud-mcp.exe",
+      "args": [],
+      "env": {
+        "PLAUD_TOKEN": "jouw-bearer-token",
+        "PLAUD_USER_ID": "jouw-x-pld-user-waarde"
+      }
+    }
+  }
+}
+```
+
+Let op: dubbele backslashes (`\\`) in het pad — anders ongeldige JSON.
+
+Updaten gaat dan via PowerShell: `uv tool install --reinstall --from "git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp" plaud-mcp`, daarna Claude Desktop volledig herstarten.
 
 ---
 
