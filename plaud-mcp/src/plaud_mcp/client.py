@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime, timezone
 
@@ -60,10 +61,20 @@ def _request(path: str, params: dict | None = None) -> tuple[int, dict]:
         response.raise_for_status()
         raise RuntimeError(f"Plaud API gaf onverwachte respons op {path}")
 
-    logger.info(
-        "Plaud GET %s -> HTTP %s body.status=%s body.keys=%s",
-        path, response.status_code, body.get("status"), sorted(body.keys()),
-    )
+    if "/file/detail/" in path:
+        try:
+            preview = json.dumps(body, ensure_ascii=False)[:3000]
+        except (TypeError, ValueError):
+            preview = str(body)[:3000]
+        logger.info(
+            "Plaud GET %s -> HTTP %s body.status=%s body.keys=%s body=%s",
+            path, response.status_code, body.get("status"), sorted(body.keys()), preview,
+        )
+    else:
+        logger.info(
+            "Plaud GET %s -> HTTP %s body.status=%s body.keys=%s",
+            path, response.status_code, body.get("status"), sorted(body.keys()),
+        )
     return response.status_code, body
 
 
