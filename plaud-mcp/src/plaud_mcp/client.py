@@ -1,3 +1,4 @@
+import gzip
 import json
 import logging
 from datetime import datetime, timezone
@@ -10,6 +11,9 @@ logger = logging.getLogger("plaud-mcp")
 
 _AUTH_FAIL_BODY_STATUSES = {-3900, -3901, -401}
 _AUTH_FAIL_HTTP_STATUSES = {401, 403}
+
+_TRANSCRIPT_TYPES = ("transaction", "transcript", "transcription")
+_SUMMARY_TYPES = ("outline", "summary", "abstract", "mindmap")
 
 
 def _data_payload(body: dict) -> dict | list | None:
@@ -61,20 +65,10 @@ def _request(path: str, params: dict | None = None) -> tuple[int, dict]:
         response.raise_for_status()
         raise RuntimeError(f"Plaud API gaf onverwachte respons op {path}")
 
-    if "/file/detail/" in path:
-        try:
-            preview = json.dumps(body, ensure_ascii=False)[:3000]
-        except (TypeError, ValueError):
-            preview = str(body)[:3000]
-        logger.info(
-            "Plaud GET %s -> HTTP %s body.status=%s body.keys=%s body=%s",
-            path, response.status_code, body.get("status"), sorted(body.keys()), preview,
-        )
-    else:
-        logger.info(
-            "Plaud GET %s -> HTTP %s body.status=%s body.keys=%s",
-            path, response.status_code, body.get("status"), sorted(body.keys()),
-        )
+    logger.info(
+        "Plaud GET %s -> HTTP %s body.status=%s body.keys=%s",
+        path, response.status_code, body.get("status"), sorted(body.keys()),
+    )
     return response.status_code, body
 
 
@@ -135,10 +129,18 @@ def _ms_to_seconds(ms: int | float | None) -> int | None:
     return int(ms // 1000)
 
 
+def _title(item: dict) -> str | None:
+    return item.get("filename") or item.get("file_name")
+
+
+def _id(item: dict) -> str | None:
+    return item.get("id") or item.get("file_id")
+
+
 def _format_recording(item: dict) -> dict:
     return {
-        "id": item.get("id"),
-        "title": item.get("filename"),
+        "id": _id(item),
+        "title": _title(item),
         "duration_seconds": _ms_to_seconds(item.get("duration")),
         "recorded_at": _ms_to_iso(item.get("start_time")),
         "has_summary": bool(item.get("is_summary")),
@@ -184,32 +186,105 @@ def search_recordings(query: str) -> list[dict]:
     items = _fetch_all_recordings()
     results = []
     for item in items:
-        title = (item.get("filename") or "").lower()
+        title = (_title(item) or "").lower()
         keywords = [k.lower() for k in item.get("keywords") or []]
         if q in title or any(q in k for k in keywords):
             results.append(_format_recording(item))
     return results
 
 
+def _find_content_link(content_list: list, type_keywords: tuple[str, ...]) -> dict | None:
+    for entry in content_list or []:
+        data_type = (entry.get("data_type") or "").lower()
+        if not any(kw in data_type for kw in type_keywords):
+            continue
+        if not entry.get("data_link"):
+            continue
+        return entry
+    return None
+
+
+def _fetch_signed(url: str):
+    response = httpx.get(url, timeout=60)
+    response.raise_for_status()
+    raw = response.content
+    try:
+        raw = gzip.decompress(raw)
+    except (OSError, gzip.BadGzipFile):
+        pass
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return raw.decode("utf-8", errors="replace")
+
+
+def _flatten_transcript(payload) -> str | None:
+    if isinstance(payload, str):
+        return payload
+    if not isinstance(payload, (dict, list)):
+        return None
+    segments = payload.get("segments") if isinstance(payload, dict) else payload
+    if not isinstance(segments, list):
+        return json.dumps(payload, ensure_ascii=False)
+    lines = []
+    for seg in segments:
+        if not isinstance(seg, dict):
+            continue
+        speaker = seg.get("speaker") or seg.get("speaker_name") or seg.get("name")
+        text = seg.get("text") or seg.get("content") or seg.get("transcript")
+        if text is None:
+            continue
+        lines.append(f"{speaker}: {text}" if speaker else text)
+    return "\n".join(lines) if lines else json.dumps(payload, ensure_ascii=False)
+
+
+def _flatten_summary(payload) -> str | None:
+    if isinstance(payload, str):
+        return payload
+    if isinstance(payload, dict):
+        for key in ("summary", "outline", "content", "text", "markdown"):
+            value = payload.get(key)
+            if isinstance(value, str) and value.strip():
+                return value
+        return json.dumps(payload, ensure_ascii=False, indent=2)
+    if isinstance(payload, list):
+        return json.dumps(payload, ensure_ascii=False, indent=2)
+    return None
+
+
 def get_summary(recording_id: str) -> dict:
     item = _detail(_get(f"/file/detail/{recording_id}"))
+    entry = _find_content_link(item.get("content_list", []), _SUMMARY_TYPES)
+    summary = None
+    if entry:
+        try:
+            summary = _flatten_summary(_fetch_signed(entry["data_link"]))
+        except Exception as exc:
+            logger.warning("Kon Plaud summary niet ophalen voor %s: %s", recording_id, exc)
     return {
-        "id": item.get("id") or recording_id,
-        "title": item.get("filename"),
+        "id": _id(item) or recording_id,
+        "title": _title(item),
         "duration_seconds": _ms_to_seconds(item.get("duration")),
         "recorded_at": _ms_to_iso(item.get("start_time")),
-        "summary": item.get("summary"),
+        "summary": summary,
     }
 
 
 def get_transcript(recording_id: str) -> dict:
     item = _detail(_get(f"/file/detail/{recording_id}"))
+    entry = _find_content_link(item.get("content_list", []), _TRANSCRIPT_TYPES)
+    transcript = None
+    if entry:
+        try:
+            transcript = _flatten_transcript(_fetch_signed(entry["data_link"]))
+        except Exception as exc:
+            logger.warning("Kon Plaud transcript niet ophalen voor %s: %s", recording_id, exc)
     return {
-        "id": item.get("id") or recording_id,
-        "title": item.get("filename"),
+        "id": _id(item) or recording_id,
+        "title": _title(item),
         "duration_seconds": _ms_to_seconds(item.get("duration")),
         "recorded_at": _ms_to_iso(item.get("start_time")),
-        "transcript": item.get("transcript"),
+        "transcript": transcript,
     }
 
 
