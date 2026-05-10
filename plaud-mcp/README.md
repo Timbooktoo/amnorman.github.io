@@ -31,7 +31,8 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
         "plaud-mcp"
       ],
       "env": {
-        "PLAUD_TOKEN": "your-bearer-token"
+        "PLAUD_TOKEN": "your-bearer-token",
+        "PLAUD_USER_ID": "your-x-pld-user-value"
       }
     }
   }
@@ -46,14 +47,27 @@ Fully quit (system tray → Quit) and reopen.
 
 ## Authentication
 
-Credentials are read from environment variables. Two options — use whichever suits you:
+Plaud's API rejects requests that lack the right combination of bearer token and custom headers. Both `PLAUD_TOKEN` and `PLAUD_USER_ID` are required — the rest have sensible defaults.
 
-| Variable | Description |
-|---|---|
-| `PLAUD_TOKEN` | Your Plaud bearer token (recommended) |
-| `PLAUD_EMAIL` + `PLAUD_PASSWORD` | Your Plaud account credentials |
+| Variable | Required | Description |
+|---|---|---|
+| `PLAUD_TOKEN` | yes | Bearer JWT (without the `Bearer ` prefix) |
+| `PLAUD_USER_ID` | yes | The 64-char hex value Plaud sends as `x-pld-user` header |
+| `PLAUD_DEVICE_ID` | no | Defaults to literal `[object Object]` (a quirk in Plaud's frontend that the backend requires) |
+| `PLAUD_TIMEZONE` | no | Defaults to `Europe/Brussels` |
+| `PLAUD_EMAIL` + `PLAUD_PASSWORD` | no | Enables automatic token refresh via the `/auth/access-token` endpoint when the bearer token expires or is revoked |
 
-`PLAUD_TOKEN` takes priority if both are set. When using email/password, the server logs in on first use and caches the token at `~/.plaud/config.json` (valid ~300 days, auto-refreshes).
+### Where to find PLAUD_TOKEN and PLAUD_USER_ID
+
+1. Open <https://web.plaud.ai> and log in
+2. Open browser DevTools (F12) → **Network** tab → enable **Preserve log**
+3. Click around in the UI to trigger an API call (e.g. open *My Files*)
+4. Click any successful request to `api.plaud.ai/...` (HTTP 200)
+5. Under **Request Headers**, copy:
+   - `authorization: Bearer eyJ...` → take the part after `Bearer ` → this is your `PLAUD_TOKEN`
+   - `x-pld-user: <hex>` → this is your `PLAUD_USER_ID`
+
+The token's lifetime varies — current tokens issued via web login are valid roughly 300 days, but Plaud may revoke them server-side after logout or password change. If you set `PLAUD_EMAIL` + `PLAUD_PASSWORD`, the server re-logs in automatically when the API rejects the cached token; otherwise you'll need to refresh `PLAUD_TOKEN` manually from DevTools.
 
 ## Installing without uvx
 

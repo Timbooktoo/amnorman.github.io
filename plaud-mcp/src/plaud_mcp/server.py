@@ -1,6 +1,15 @@
+import logging
+import sys
+
 from mcp.server.fastmcp import FastMCP
 
 from . import client
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[plaud-mcp] %(levelname)s %(message)s",
+    stream=sys.stderr,
+)
 
 mcp = FastMCP("Plaud Note")
 
