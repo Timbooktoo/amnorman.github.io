@@ -97,6 +97,8 @@ Soms faalt `uvx` op Windows met *"Failed to resolve `--with` requirement / Git o
 uv tool install --from "git+https://github.com/Timbooktoo/amnorman.github.io#subdirectory=plaud-mcp" plaud-mcp
 ```
 
+> **Belangrijk op Windows**: sluit Claude Desktop volledig af (systeemvak → rechtsklik → Quit) **vóór** je installeert of upgrade. Een draaiende Claude Desktop houdt `plaud-mcp.exe` open, waardoor de installatie faalt met *"file in use"* of *"access denied"*. Volgorde: Claude afsluiten → install → Claude opnieuw starten.
+
 Bij latere updates: vervang `install` door `install --reinstall`.
 
 **2. Pad opzoeken**:
@@ -167,3 +169,6 @@ Als het goed is zie je een overzicht van je opnames. Je kunt daarna ook vragen:
 **Server disconnected**
 - Controleer dat `"args"` uit drie losse strings bestaat (zie config hierboven)
 - Sla het bestand op en herstart Claude Desktop volledig
+
+**`uv tool install` faalt met "file in use" / "access denied" (Windows)**
+- Claude Desktop staat nog open en houdt `plaud-mcp.exe` vast. Sluit Claude volledig af (systeemvak → rechtsklik → Quit), draai daarna de install opnieuw, en start Claude pas weer op nadat de install klaar is.
